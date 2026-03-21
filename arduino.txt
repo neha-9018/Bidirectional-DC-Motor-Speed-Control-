@@ -1,0 +1,109 @@
+#include <LiquidCrystal.h>
+
+/* LCD Pins: RS, E, D4, D5, D6, D7 */
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+/* Sensor Pins */
+const int tempPin = A0;
+const int voltPin = A1;
+
+/* Output Pins */
+const int relayPin  = 8;
+const int buzzerPin = 9;
+
+/* System Constants */
+const float VREF = 5.0;            // Arduino reference voltage
+const float TEMP_LIMIT = 40.0;     // Temperature threshold (°C)
+
+/* Variables */
+float temperature = 0;
+float voltage = 0;
+
+void setup()
+{
+  Serial.begin(9600);
+
+  lcd.begin(16,2);
+
+  pinMode(relayPin, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
+
+  digitalWrite(relayPin, HIGH);   // Charging allowed
+  digitalWrite(buzzerPin, LOW);
+
+  lcd.setCursor(0,0);
+  lcd.print("EV Battery");
+  lcd.setCursor(0,1);
+  lcd.print("Monitoring...");
+  delay(2000);
+
+  lcd.clear();
+}
+
+void loop()
+{
+
+/* -------- TEMPERATURE (LM35) -------- */
+
+  int tempADC = analogRead(tempPin);
+
+  float tempVoltage = tempADC * (VREF / 1023.0);
+
+  temperature = tempVoltage * 100.0;   // LM35 conversion
+
+
+/* -------- VOLTAGE SENSOR -------- */
+
+  int voltADC = analogRead(voltPin);
+
+  float sensorVoltage = voltADC * (VREF / 1023.0);
+
+  voltage = sensorVoltage * 11.0;   // Voltage divider ratio
+
+
+/* -------- LCD DISPLAY -------- */
+
+  lcd.setCursor(0,0);
+  lcd.print("Temp:");
+  lcd.print(temperature,1);
+  lcd.print((char)223); // degree symbol
+  lcd.print("C ");
+
+  lcd.setCursor(0,1);
+  lcd.print("Volt:");
+  lcd.print(voltage,1);
+  lcd.print("V  ");
+
+
+/* -------- SERIAL DATA FOR IoT -------- */
+
+  Serial.print(temperature,1);
+  Serial.print(",");
+  Serial.println(voltage,1);
+
+
+/* -------- SAFETY PROTECTION -------- */
+
+  if(temperature >= TEMP_LIMIT)
+  {
+    digitalWrite(relayPin, LOW);     // Stop charging
+    digitalWrite(buzzerPin, HIGH);
+
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("!! OVERHEAT !!");
+    lcd.setCursor(0,1);
+    lcd.print("Charging OFF");
+
+    delay(2000);
+  }
+  else
+  {
+    digitalWrite(relayPin, HIGH);    // Charging ON
+    digitalWrite(buzzerPin, LOW);
+  }
+
+
+  delay(1000);
+
+}
