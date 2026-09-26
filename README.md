@@ -68,6 +68,7 @@ The system uses a motor driver circuit (H-Bridge) to control the direction of th
 ---
 
 ## Author
-
+**Neha Yadav**
+Computer science and engineering 
 **Dipendra Teli**  
 Electrical and Electronics Engineering
