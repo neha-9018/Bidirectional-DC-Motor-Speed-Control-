@@ -1,4 +1,4 @@
-# Bidirectional Speed Control of DC Motor
+ # Bidirectional Speed Control of DC Motor
 
 ## Project Overview
 
